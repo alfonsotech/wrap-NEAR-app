@@ -21,6 +21,9 @@ const App = () => {
   // Define a NEAR contract interface.  This is the interface that will be used to call the contract.
   useEffect(() => {
     if(wallet) {
+      // const walletAccountObj = wallet.account();
+      // console.log('walletAccountObj:', walletAccountObj);
+
       setContract(
         new Contract(wallet.account(), 'wrap.testnet', {
           changeMethods: ['near_deposit', 'near_withdraw'],
@@ -45,6 +48,11 @@ const App = () => {
       contractId: 'wrap.testnet',
       methodNames: ['near_deposit', 'ft_balance_of', 'near_withdraw'],
     });
+  };
+
+  const handleLogout = () => {
+    wallet.signOut();
+    isSignedIn && setContract(null);
   };
 
   //Withdraw or Deposit based on User choice
@@ -73,31 +81,36 @@ const App = () => {
       {!isSignedIn && (
         <button onClick={() => handleLogin()}>Login with NEAR</button>
       )}
-      <p>Current Wrapped Balance: {balance}</p>
-      <form onSubmit={handleSubmit}>
-        <select
-          defaultValue={method}
-          onChange={({ target: { value } }) => setMethod(value)}
-          style={{ marginRight: '1rem' }}
-        >
-          <option value="wrap">Wrap NEAR</option>
-          <option value="unwrap">Unwrap NEAR</option>
-        </select>
-        <label>
-          Amount:
-          <input
-            type="number"
-            name="deposit"
-            value={amount}
-            onChange={({ target: { value } }) => setAmount(value)}
-          />
-        </label>
-        <input
-          type="submit"
-          value={`${method} NEAR`}
-          style={{ textTransform: 'capitalize' }}
-        />
-      </form>
+      {isSignedIn && (
+        <div>
+         <button onClick={() => handleLogout()}>Logout</button>
+         <p>Current Wrapped Balance: {balance}</p>
+         <form onSubmit={handleSubmit}>
+           <select
+             defaultValue={method}
+             onChange={({ target: { value } }) => setMethod(value)}
+             style={{ marginRight: '1rem' }}
+           >
+             <option value="wrap">Wrap NEAR</option>
+             <option value="unwrap">Unwrap NEAR</option>
+           </select>
+           <label>
+             Amount:
+             <input
+               type="number"
+               name="deposit"
+               value={amount}
+               onChange={({ target: { value } }) => setAmount(value)}
+             />
+           </label>
+           <input
+             type="submit"
+             value={`${method} NEAR`}
+             style={{ textTransform: 'capitalize' }}
+           />
+         </form>
+         </div>
+      )}
     </div>
   );
 };
