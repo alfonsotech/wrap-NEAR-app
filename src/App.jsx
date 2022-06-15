@@ -3,13 +3,14 @@ import { connect, WalletConnection, utils, Contract} from 'near-api-js';
 import { getConfig } from './config';
 
 const {
-  format: { parseNearAmount },
+  format: { parseNearAmount, formatNearAmount },
 } = utils;
 
 const App = () => {
   const [wallet, setWallet] = useState(null);
   const [amount, setAmount] = useState(0);
   const [contract, setContract] = useState(null);
+  const [balance, setBalance] = useState(null);
 
   useEffect(() => {
     connect(getConfig()).then((near) => setWallet(new WalletConnection(near)));
@@ -19,19 +20,30 @@ const App = () => {
   useEffect(() => {
     if(wallet) {
       setContract(
-        new Contract(wallet.account(), 'wrap.testnet', {changeMethods: ['near_deposit']})
-      )
+        new Contract(wallet.account(), 'wrap.testnet', {
+          changeMethods: ['near_deposit'],
+          viewMethods: ['ft_balance_of'],
+        }),
+      );
     }
   }, [wallet]);
 
   const isSignedIn = Boolean(wallet && wallet.isSignedIn() && contract);
 
   const handleLogin = () => { 
-    wallet.requestSIgnIn({
+    wallet.requestSignIn({
       contractId: 'wrap.testnet',
       methodNames: ['near_deposit'],
     });
   };
+
+  useEffect(() => {
+    if (isSignedIn) {
+      contract
+        .ft_balance_of({ account_id: wallet.getAccountId() })
+        .then((balance) => setBalance(formatNearAmount(balance)));
+    }
+  }, [wallet, contract, isSignedIn]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,6 +58,7 @@ const App = () => {
       {!isSignedIn && (
         <button onClick={() => handleLogin()}>Login with NEAR</button>
       )}
+      <p>Current Wrapped Balance: {balance}</p>
       <form onSubmit={handleSubmit}>
         <label>
           Deposit:

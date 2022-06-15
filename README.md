@@ -1,3 +1,9 @@
+# Application to wrap NEAR coins
+    Educational project using tutorial here: 
+    https://welcome.near.university/developers/react/getting-started/react-tutorial
+    And set up using:
+    npx create-react-app --template near-js wrap-near-app
+
 # Getting Started with Create React App NEAR js template
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app) from the [cra-template-near-js](https://github.com/NEAR-Edu/near/tree/main/packages/cra-template-js) template.
