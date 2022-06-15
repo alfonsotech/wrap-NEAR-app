@@ -10,7 +10,7 @@ const App = () => {
   const [wallet, setWallet] = useState(null);
   const [amount, setAmount] = useState(0);
   const [contract, setContract] = useState(null);
-  const [balance, setBalance] = useState(null);
+  const [wrappedBalance, setWrappedBalance] = useState(null);
   const [method, setMethod] = useState('wrap');
 
   //Connect to NEAR Wallet
@@ -27,7 +27,7 @@ const App = () => {
       setContract(
         new Contract(wallet.account(), 'wrap.testnet', {
           changeMethods: ['near_deposit', 'near_withdraw'],
-          viewMethods: ['ft_balance_of'],
+          viewMethods: ['ft_balance_of'], 
         }),
       );
     }
@@ -39,7 +39,7 @@ const App = () => {
     if (isSignedIn) {
       contract
         .ft_balance_of({ account_id: wallet.getAccountId() })
-        .then((balance) => setBalance(formatNearAmount(balance)));
+        .then((wrappedBalance) => setWrappedBalance(formatNearAmount(wrappedBalance)))
     }
   }, [wallet, contract, isSignedIn]);
 
@@ -84,7 +84,7 @@ const App = () => {
       {isSignedIn && (
         <div>
          <button onClick={() => handleLogout()}>Logout</button>
-         <p>Current Wrapped Balance: {balance}</p>
+         <p>Current Wrapped Balance: {wrappedBalance || 0}</p>
          <form onSubmit={handleSubmit}>
            <select
              defaultValue={method}
