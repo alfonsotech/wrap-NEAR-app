@@ -11,7 +11,9 @@ const App = () => {
   const [amount, setAmount] = useState(0);
   const [contract, setContract] = useState(null);
   const [balance, setBalance] = useState(null);
+  const [method, setMethod] = useState('wrap');
 
+  //Connect to NEAR Wallet
   useEffect(() => {
     connect(getConfig()).then((near) => setWallet(new WalletConnection(near)));
   }, []);
@@ -21,7 +23,7 @@ const App = () => {
     if(wallet) {
       setContract(
         new Contract(wallet.account(), 'wrap.testnet', {
-          changeMethods: ['near_deposit'],
+          changeMethods: ['near_deposit', 'near_withdraw'],
           viewMethods: ['ft_balance_of'],
         }),
       );
@@ -29,13 +31,6 @@ const App = () => {
   }, [wallet]);
 
   const isSignedIn = Boolean(wallet && wallet.isSignedIn() && contract);
-
-  const handleLogin = () => { 
-    wallet.requestSignIn({
-      contractId: 'wrap.testnet',
-      methodNames: ['near_deposit'],
-    });
-  };
 
   useEffect(() => {
     if (isSignedIn) {
@@ -45,12 +40,32 @@ const App = () => {
     }
   }, [wallet, contract, isSignedIn]);
 
+  const handleLogin = () => { 
+    wallet.requestSignIn({
+      contractId: 'wrap.testnet',
+      methodNames: ['near_deposit', 'ft_balance_of', 'near_withdraw'],
+    });
+  };
+
+  //Withdraw or Deposit based on User choice
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await contract.near_deposit( {
-      args: {},
-      amount: parseNearAmount(amount),
-    });
+
+    if(method === 'wrap') {
+      await contract.near_deposit( {
+        args: {},
+        amount: parseNearAmount(amount),
+      });
+    }
+    if (method === 'unwrap') {
+      await contract.near_withdraw({
+        args: {
+          amount: parseNearAmount(amount),
+        },
+        amount: 1,
+      });
+    }
+    
   };
   
   return (
@@ -60,8 +75,16 @@ const App = () => {
       )}
       <p>Current Wrapped Balance: {balance}</p>
       <form onSubmit={handleSubmit}>
+        <select
+          defaultValue={method}
+          onChange={({ target: { value } }) => setMethod(value)}
+          style={{ marginRight: '1rem' }}
+        >
+          <option value="wrap">Wrap NEAR</option>
+          <option value="unwrap">Unwrap NEAR</option>
+        </select>
         <label>
-          Deposit:
+          Amount:
           <input
             type="number"
             name="deposit"
@@ -69,7 +92,11 @@ const App = () => {
             onChange={({ target: { value } }) => setAmount(value)}
           />
         </label>
-        <input type="submit" value="Wrap NEAR" />
+        <input
+          type="submit"
+          value={`${method} NEAR`}
+          style={{ textTransform: 'capitalize' }}
+        />
       </form>
     </div>
   );
